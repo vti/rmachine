@@ -1,0 +1,24 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Fcntl ':flock';
+use Getopt::Long;
+use App::rmachine;
+
+open my $lock, '<', __FILE__ or die "Can't lock myself\n";
+flock $lock, LOCK_EX|LOCK_NB or do { warn "Already running\n"; exit 255 };
+
+my $test = 0;
+my $quiet = 0;
+my $config_file = '';
+my $log_file = '';
+GetOptions(
+    'test' => \$test,
+    'quiet' => \$quiet,
+    'config=s' => \$config_file,
+    'log=s' => \$log_file
+) or die("Error in command line arguments\n");
+
+App::rmachine->new(config_file => $config_file, log_file => $log_file, quiet => $quiet, test => $test)->run(@ARGV);
