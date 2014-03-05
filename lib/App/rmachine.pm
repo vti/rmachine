@@ -3,6 +3,8 @@ package App::rmachine;
 use strict;
 use warnings;
 
+our $VERSION = '0.01';
+
 use Config::Tiny;
 use App::rmachine::mirror;
 use App::rmachine::snapshot;
