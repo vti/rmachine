@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Time::Piece;
+use App::rmachine::util qw(current_time);
 
 sub new {
     my $class = shift;
@@ -22,7 +23,7 @@ sub log {
     my $self = shift;
     my ($message) = @_;
 
-    my $log_message = join ' ', Time::Piece->new->strftime('%Y/%m/%d %T'), $message;
+    my $log_message = join ' ', current_time(), $message;
     $log_message .= "\n";
 
     open my $fh, '>>:encoding(UTF-8)', $self->{log_file} or die "Can't open log file '$self->{log_file}': $!\n";

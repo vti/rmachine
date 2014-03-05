@@ -3,12 +3,10 @@ package App::rmachine::snapshot;
 use strict;
 use warnings;
 
-use Time::Piece;
-use Time::HiRes qw(gettimeofday);
 use Cwd qw(realpath);
 use App::rmachine::command::rsync;
 use App::rmachine::mirror;
-use App::rmachine::util qw(is_dir_empty);
+use App::rmachine::util qw(is_dir_empty current_time);
 
 sub new {
     my $class = shift;
@@ -94,10 +92,7 @@ sub run {
 sub _build_new_snapshot_name {
     my $self = shift;
 
-    my $new_snapshot = Time::Piece->new->strftime('%Y-%m-%dT%T');
-    my (undef, $microseconds) = gettimeofday;
-
-    return $new_snapshot . '.' . $microseconds . Time::Piece->new->strftime('%Z');
+    return current_time();
 }
 
 sub _build_mirror_action {
