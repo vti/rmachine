@@ -7,6 +7,7 @@ our $VERSION = '0.01';
 
 use Error::Tiny;
 use Config::Tiny;
+use Time::Crontab;
 use App::rmachine::mirror;
 use App::rmachine::snapshot;
 use App::rmachine::logger;
@@ -22,6 +23,7 @@ sub new {
     $self->{log_file} = $params{log_file} || $self->_locate_log_file;
     $self->{quiet} = $params{quiet};
     $self->{test} = $params{test};
+    $self->{force} = $params{force};
 
     $self->{logger} = App::rmachine::logger->new(log_file => $self->{log_file}, quiet => $self->{quiet});
 
@@ -38,12 +40,19 @@ sub run {
     my @scenarios = sort grep {/^scenario:/} keys %$config;
     $self->{logger}->log('rmachine', 'scenarios', 'Found ' . scalar(@scenarios) . ' scenario(s)');
 
+    my $start_time = time;
+
     foreach my $scenario (@scenarios) {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
         $params{scenario} = $scenario;
         $params{type} ||= 'mirror';
         $params{logger} = $self->{logger};
+
+        if (!$self->{force} && !Time::Crontab->new($params{period})->match($start_time)) {
+            $self->{logger}->log($scenario, 'skip', 'Does not match period');
+            next;
+        }
 
         $self->{logger}->log($scenario, 'start');
 
@@ -73,8 +82,15 @@ sub _read_config {
     foreach my $scenario (@scenarios) {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
+        try {
+	    Time::Crontab->new($params{period});
+        } catch {
+            my $e = shift;
+            die "Error: Wrong period '$params{period}'\n";
+        };
+
         if (!grep { $params{type} eq $_ } @known_types) {
-            die "Unknown type '$params{type}'\n";
+            die "Error: Unknown type '$params{type}'\n";
         }
     }
 
