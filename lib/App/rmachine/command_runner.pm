@@ -3,6 +3,8 @@ package App::rmachine::command_runner;
 use strict;
 use warnings;
 
+use App::rmachine::exception::failed_exit;
+
 sub new {
     my $class = shift;
     my (%params) = @_;
@@ -33,6 +35,8 @@ sub run {
         print unless $self->{quiet};
     }
     close $fh;
+
+    App::rmachine::exception::failed_exit->throw if $?;
 
     return $?;
 }

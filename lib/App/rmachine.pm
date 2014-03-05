@@ -5,6 +5,7 @@ use warnings;
 
 our $VERSION = '0.01';
 
+use Error::Tiny;
 use Config::Tiny;
 use App::rmachine::mirror;
 use App::rmachine::snapshot;
@@ -23,7 +24,6 @@ sub new {
     $self->{test} = $params{test};
 
     $self->{logger} = App::rmachine::logger->new(log_file => $self->{log_file}, quiet => $self->{quiet});
-
 
     return $self;
 }
@@ -47,15 +47,13 @@ sub run {
 
         $self->{logger}->log($scenario, 'start');
 
-        if ($params{type} eq 'mirror') {
-            $self->_build_action('mirror', %params)->run;
-        }
-        elsif ($params{type} eq 'snapshot') {
-            $self->_build_action('snapshot', %params)->run;
-        }
-        else {
-            die "Unknown type '$params{type}'\n";
-        }
+        try {
+            $self->_build_action($params{type}, %params)->run;
+        
+            $self->{logger}->log($scenario, 'end', 'Success');
+        } catch {
+            $self->{logger}->log($scenario, 'end', 'Failure');
+        };
 
         $self->{logger}->log($scenario, 'end');
     }
@@ -67,7 +65,20 @@ sub _read_config {
     my $self = shift;
 
     $self->{logger}->log('rmachine', 'config', 'Reading ' . $self->{config_file});
-    return Config::Tiny->read($self->{config_file}, 'encoding(UTF-8)') || die "$Config::Tiny::errstr\n";
+    my $config = Config::Tiny->read($self->{config_file}, 'encoding(UTF-8)') || die "$Config::Tiny::errstr\n";
+
+    my @scenarios = sort grep {/^scenario:/} keys %$config;
+
+    my @known_types = qw/mirror snapshot/;
+    foreach my $scenario (@scenarios) {
+        my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
+
+        if (!grep { $params{type} eq $_ } @known_types) {
+            die "Unknown type '$params{type}'\n";
+        }
+    }
+
+    return $config;
 }
 
 sub _locate_config_file {
