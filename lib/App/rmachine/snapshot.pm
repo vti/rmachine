@@ -97,7 +97,7 @@ sub _build_new_snapshot_name {
     my $new_snapshot = Time::Piece->new->strftime('%Y-%m-%dT%T');
     my (undef, $microseconds) = gettimeofday;
 
-    return $new_snapshot . '.' . $microseconds;
+    return $new_snapshot . '.' . $microseconds . Time::Piece->new->strftime('%Z');
 }
 
 sub _build_mirror_action {
