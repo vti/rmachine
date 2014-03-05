@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Time::Piece;
+use File::ReadBackwards;
 use App::rmachine::util qw(current_time);
 
 sub new {
@@ -35,6 +36,29 @@ sub log {
     print $log_message unless $self->{quiet};
 
     return $self;
+}
+
+sub grep_last {
+    my $self = shift;
+    my (%params) = @_;
+
+    my $bw = File::ReadBackwards->new($self->{log_file}) or die "Can't open log file '$self->{log_file}' $!\n" ;
+
+    while( defined( my $log_line = $bw->readline ) ) {
+        my ($date, $source, $action, $message) = $log_line =~ m/^([^ ]+) \[(.*?)\] \[(.*?)\] (.*)/;
+
+        if (my $needed_source = $params{source}) {
+            next unless $source eq $needed_source;
+        }
+
+        if (my $needed_action = $params{action}) {
+            next unless $action eq $needed_action;
+        }
+
+        return {date => $date, source => $source, action => $action, message => $message};
+    }
+
+    return;
 }
 
 1;

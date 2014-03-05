@@ -3,13 +3,35 @@ package TestUtils;
 use strict;
 use warnings;
 
-use File::Temp qw(tempdir);
+use File::Temp qw(tempdir tempfile);
+
+sub prepare_file {
+    my $class = shift;
+    my ($content) = @_;
+
+    my ($fh, $filename) = tempfile();
+    print $fh $content if defined $content;
+    close $fh;
+
+    return $filename;
+}
+
+sub read_file {
+    my $class = shift;
+    my ($filename) = @_;
+
+    open my $fh, '<', $filename;
+    my $content = do { local $/; <$fh> };
+    close $fh;
+
+    return $content;
+}
 
 sub prepare_tree {
     my $class = shift;
     my %params = @_;
 
-    my $dir = tempdir(CLEANUP => 0);
+    my $dir = tempdir(CLEANUP => 1);
 
     foreach my $file (keys %params) {
         open my $fh, '>', "$dir/$file";
