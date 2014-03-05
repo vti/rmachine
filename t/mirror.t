@@ -23,6 +23,19 @@ subtest 'mirror files' => sub {
     is_deeply $result, {foo => 1, bar => 1};
 };
 
+subtest 'mirror single file' => sub {
+    my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
+    my $dest = TestUtils->prepare_tree();
+
+    my $action = _build_action(source => "$source/foo", dest => $dest);
+
+    $action->run;
+
+    my $result = TestUtils->read_tree($dest);
+
+    is_deeply $result, {foo => 1};
+};
+
 subtest 'ignore exluded' => sub {
     my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
     my $dest = TestUtils->prepare_tree();
