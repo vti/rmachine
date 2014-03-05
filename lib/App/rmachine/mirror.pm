@@ -13,6 +13,7 @@ sub new {
     bless $self, $class;
 
     $self->{command_runner} = $params{command_runner};
+    $self->{logger} = $params{logger};
 
     $self->{source} = $params{source};
     $self->{dest} = $params{dest};
@@ -24,12 +25,19 @@ sub new {
 sub run {
     my $self = shift;
 
+    $self->log('rsync');
     return $self->_build_command(
 	source => $self->{source},
 	dest => $self->{dest},
 	exclude => $self->{exclude},
         command_runner => $self->{command_runner},
     )->run;
+}
+
+sub log {
+    my $self = shift;
+
+    $self->{logger}->log($self->{scenario}, @_);
 }
 
 sub _build_command {

@@ -22,8 +22,8 @@ sub new {
     $self->{quiet} = $params{quiet};
     $self->{test} = $params{test};
 
-    $self->{config} = Config::Tiny->read($self->{config_file}, 'encoding(UTF-8)') || die "$Config::Tiny::errstr\n";
     $self->{logger} = App::rmachine::logger->new(log_file => $self->{log_file}, quiet => $self->{quiet});
+
 
     return $self;
 }
@@ -31,17 +31,21 @@ sub new {
 sub run {
     my $self = shift;
 
-    my $config = $self->{config};
+    $self->{logger}->log('rmachine', 'start', 'Starting');
+
+    my $config = $self->{config} = $self->_read_config;
 
     my @scenarios = sort grep {/^scenario:/} keys %$config;
+    $self->{logger}->log('rmachine', 'scenarios', 'Found ' . scalar(@scenarios) . ' scenario(s)');
 
     foreach my $scenario (@scenarios) {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
+        $params{scenario} = $scenario;
         $params{type} ||= 'mirror';
         $params{logger} = $self->{logger};
 
-        $self->{logger}->log("start $scenario");
+        $self->{logger}->log($scenario, 'start');
 
         if ($params{type} eq 'mirror') {
             $self->_build_action('mirror', %params)->run;
@@ -53,8 +57,17 @@ sub run {
             die "Unknown type '$params{type}'\n";
         }
 
-        $self->{logger}->log("end $scenario");
+        $self->{logger}->log($scenario, 'end');
     }
+
+    $self->{logger}->log('rmachine', 'end', 'Finishing');
+}
+
+sub _read_config {
+    my $self = shift;
+
+    $self->{logger}->log('rmachine', 'config', 'Reading ' . $self->{config_file});
+    return Config::Tiny->read($self->{config_file}, 'encoding(UTF-8)') || die "$Config::Tiny::errstr\n";
 }
 
 sub _locate_config_file {

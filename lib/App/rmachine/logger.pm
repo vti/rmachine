@@ -21,9 +21,11 @@ sub new {
 
 sub log {
     my $self = shift;
-    my ($message) = @_;
+    my ($source, $action, $message) = @_;
 
-    my $log_message = join ' ', current_time(), $message;
+    $message = '' unless defined $message;
+
+    my $log_message = join ' ', current_time(), "[$source]", "[$action]", $message;
     $log_message .= "\n";
 
     open my $fh, '>>:encoding(UTF-8)', $self->{log_file} or die "Can't open log file '$self->{log_file}': $!\n";

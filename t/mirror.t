@@ -24,10 +24,13 @@ subtest 'create command with correct arguments' => sub {
 sub _build_action {
     my (%params) = @_;
 
+    my $logger = Test::MonkeyMock->new;
+    $logger->mock(log => sub {});
+
     my $command = $params{command} || Test::MonkeyMock->new;
     $command->mock(run => sub {});
 
-    my $action = App::rmachine::mirror->new(%params);
+    my $action = App::rmachine::mirror->new(logger => $logger, %params);
     $action = Test::MonkeyMock->new($action);
     $action->mock(_build_command => sub { $command });
 

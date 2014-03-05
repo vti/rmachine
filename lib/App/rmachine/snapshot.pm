@@ -15,6 +15,7 @@ sub new {
     my $self = {};
     bless $self, $class;
 
+    $self->{scenario} = $params{scenario};
     $self->{command_runner} = $params{command_runner};
 
     $self->{source} = $params{source};
@@ -66,7 +67,7 @@ sub run {
     });
 
     if ($changes) {
-        $self->{logger}->log('detected changes');
+        $self->log('changes', 'Found changes');
 
         my $new_snapshot = $self->_build_new_snapshot_name();
 
@@ -74,7 +75,8 @@ sub run {
         $self->{command_runner}->run("mkdir '$self->{dest}/$new_snapshot'");
         $self->{command_runner}->run("cp -alR $latest_resolved/* $self->{dest}/$new_snapshot");
 
-        my $rsync = App::rmachine::command::rsync->new(
+        $self->log('rsync');
+        App::rmachine::command::rsync->new(
             command_runner => $self->{command_runner},
             source => "$self->{source}/",
             dest => "$self->{dest}/$new_snapshot/",
@@ -85,8 +87,16 @@ sub run {
         $self->{command_runner}->run("ln -s $self->{dest}/$new_snapshot $self->{dest}/latest");
     }
     else {
-        $self->{logger}->log('no changes');
+        $self->log('changes', 'No changes');
     }
+
+    return;
+}
+
+sub log {
+    my $self = shift;
+
+    $self->{logger}->log($self->{scenario}, @_);
 }
 
 sub _build_new_snapshot_name {
@@ -98,7 +108,7 @@ sub _build_new_snapshot_name {
 sub _build_mirror_action {
     my $self = shift;
     
-    return App::rmachine::mirror->new(@_);
+    return App::rmachine::mirror->new(logger => $self->{logger}, @_);
 }
 
 1;
