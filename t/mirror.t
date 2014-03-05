@@ -4,21 +4,36 @@ use warnings;
 use Test::More;
 use Test::MonkeyMock;
 
-use App::rmachine::mirror;
+use lib 't/lib';
 
-subtest 'create command with correct arguments' => sub {
-    my $action = _build_action(source => 'foo', dest => 'bar', exclude => '123');
+use App::rmachine::mirror;
+use App::rmachine::command_runner;
+use TestUtils;
+
+subtest 'mirror files' => sub {
+    my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
+    my $dest = TestUtils->prepare_tree();
+
+    my $action = _build_action(source => $source, dest => $dest);
 
     $action->run;
 
-    my %arguments = $action->mocked_call_args('_build_command');
+    my $result = TestUtils->read_tree($dest);
 
-    is_deeply \%arguments, {
-        source => 'foo',
-        dest => 'bar',
-        exclude => '123',
-        command_runner => undef
-    };
+    is_deeply $result, {foo => 1, bar => 1};
+};
+
+subtest 'ignore exluded' => sub {
+    my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
+    my $dest = TestUtils->prepare_tree();
+
+    my $action = _build_action(source => $source, dest => $dest, exclude => 'bar');
+
+    $action->run;
+
+    my $result = TestUtils->read_tree($dest);
+
+    is_deeply $result, {foo => 1};
 };
 
 sub _build_action {
@@ -27,14 +42,10 @@ sub _build_action {
     my $logger = Test::MonkeyMock->new;
     $logger->mock(log => sub {});
 
-    my $command = $params{command} || Test::MonkeyMock->new;
-    $command->mock(run => sub {});
-
-    my $action = App::rmachine::mirror->new(logger => $logger, %params);
-    $action = Test::MonkeyMock->new($action);
-    $action->mock(_build_command => sub { $command });
-
-    return $action;
+    return App::rmachine::mirror->new(
+        command_runner => App::rmachine::command_runner->new,
+        logger => $logger, %params
+    );
 }
 
 done_testing;

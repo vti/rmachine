@@ -5,12 +5,14 @@ use Test::More;
 use Test::Fatal;
 use Test::MonkeyMock;
 
-use File::Temp qw(tempdir);
+use lib 't/lib';
+
 use App::rmachine::snapshot;
 use App::rmachine::command_runner;
+use TestUtils;
 
 subtest 'throw when latest link is not a link' => sub {
-    my $tree = _prepare_tree(latest => '123');
+    my $tree = TestUtils->prepare_tree(latest => '123');
 
     my $action = _build_action(dest => $tree);
 
@@ -18,7 +20,7 @@ subtest 'throw when latest link is not a link' => sub {
 };
 
 subtest 'throw when latest does not exist but dest directory is not empty' => sub {
-    my $tree = _prepare_tree(foo => '123');
+    my $tree = TestUtils->prepare_tree(foo => '123');
 
     my $action = _build_action(dest => $tree);
 
@@ -26,13 +28,13 @@ subtest 'throw when latest does not exist but dest directory is not empty' => su
 };
 
 subtest 'run mirror when not latest link' => sub {
-    my $source = _prepare_tree(foo => 'bar');
-    my $dest = _prepare_tree();
+    my $source = TestUtils->prepare_tree(foo => 'bar');
+    my $dest = TestUtils->prepare_tree();
 
     my $action = _build_action(source => $source, dest => $dest);
     $action->run;
 
-    my $result = _read_tree($dest);
+    my $result = TestUtils->read_tree($dest);
 
     ok -l "$dest/latest";
     is_deeply $result->{latest}, {foo => 1};
@@ -43,8 +45,8 @@ subtest 'run mirror when not latest link' => sub {
 };
 
 subtest 'create new snapshot' => sub {
-    my $source = _prepare_tree(foo => 'bar');
-    my $dest = _prepare_tree();
+    my $source = TestUtils->prepare_tree(foo => 'bar');
+    my $dest = TestUtils->prepare_tree();
 
     my $action = _build_action(source => $source, dest => $dest);
     $action->run;
@@ -56,7 +58,7 @@ subtest 'create new snapshot' => sub {
     $action = _build_action(source => $source, dest => $dest);
     $action->run;
 
-    my $result = _read_tree($dest);
+    my $result = TestUtils->read_tree($dest);
 
     ok -l "$dest/latest";
     is_deeply $result->{latest}, {foo => 1, new_file => 1};
@@ -70,8 +72,8 @@ subtest 'create new snapshot' => sub {
 };
 
 subtest 'not create new snapshot when nothing changed' => sub {
-    my $source = _prepare_tree(foo => 'bar');
-    my $dest = _prepare_tree();
+    my $source = TestUtils->prepare_tree(foo => 'bar');
+    my $dest = TestUtils->prepare_tree();
 
     my $action = _build_action(source => $source, dest => $dest);
     $action->run;
@@ -79,7 +81,7 @@ subtest 'not create new snapshot when nothing changed' => sub {
     $action = _build_action(source => $source, dest => $dest);
     $action->run;
 
-    my $result = _read_tree($dest);
+    my $result = TestUtils->read_tree($dest);
 
     ok -l "$dest/latest";
     is_deeply $result->{latest}, {foo => 1};
@@ -95,40 +97,6 @@ sub _build_action {
     $logger->mock(log => sub {});
 
     return App::rmachine::snapshot->new(command_runner => App::rmachine::command_runner->new, logger => $logger, %params);
-}
-
-sub _prepare_tree {
-    my %params = @_;
-
-    my $dir = tempdir(CLEANUP => 0);
-
-    foreach my $file (keys %params) {
-        open my $fh, '>', "$dir/$file";
-        print $fh $params{$file};
-        close $fh;
-    }
-
-    return "$dir/";
-}
-
-sub _read_tree {
-    my $dirname = shift;
-
-    my $tree = {};
-    opendir(my $dh, $dirname) or die "Not a directory";
-    my @files = grep { $_ ne "." && $_ ne ".." } readdir($dh);
-    closedir($dh);
-
-    foreach my $file (@files) {
-        if (-f "$dirname/$file") {
-            $tree->{$file}++;
-        }
-        elsif (-d "$dirname/$file") {
-            $tree->{$file} = _read_tree("$dirname/$file");
-        }
-    }
-
-    return $tree;
 }
 
 done_testing;
