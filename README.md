@@ -107,3 +107,12 @@ Hooks are scripts run during different phases of the execution.
     progress_hook Is run during the scenario, script get current percent of
                   execution
     post_hook     Is run after the scenario
+
+## Ideas
+
+### Inotify
+
+I was thinking about using inotify, but that would require writing a robust
+daemon with a watchdog script. And do you really want to make snapshots every
+time you save a file? So I don't see this is as a high priority feature, but I
+woudn't mind if someone helps me though ;)
