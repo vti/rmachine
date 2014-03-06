@@ -21,7 +21,7 @@ sub build_excludes {
 sub is_dir_empty {
     my $dirname = shift;
 
-    opendir(my $dh, $dirname) or die "Not a directory";
+    opendir(my $dh, $dirname) or die "Not a directory '$dirname'\n";
     return scalar(grep { $_ ne "." && $_ ne ".." } readdir($dh)) == 0;
 }
 

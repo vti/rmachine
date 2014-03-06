@@ -49,9 +49,11 @@ sub run {
         $params{type} ||= 'mirror';
         $params{logger} = $self->{logger};
 
-        if (!$self->{force} && !Time::Crontab->new($params{period})->match($start_time)) {
-            $self->{logger}->log($scenario, 'skip', 'Does not match period');
-            next;
+        if (!$self->{force} && $params{period}) {
+	    if (!Time::Crontab->new($params{period})->match($start_time)) {
+                $self->{logger}->log($scenario, 'skip', 'Does not match period');
+                next;
+            }
         }
 
         $self->{logger}->log($scenario, 'start');
@@ -61,10 +63,9 @@ sub run {
         
             $self->{logger}->log($scenario, 'end', 'Success');
         } catch {
-            $self->{logger}->log($scenario, 'end', 'Failure');
+            my $e = shift;
+            $self->{logger}->log($scenario, 'end', "Failure: $e");
         };
-
-        $self->{logger}->log($scenario, 'end');
     }
 
     $self->{logger}->log('rmachine', 'end', 'Finishing');
@@ -82,12 +83,14 @@ sub _read_config {
     foreach my $scenario (@scenarios) {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
-        try {
-	    Time::Crontab->new($params{period});
-        } catch {
-            my $e = shift;
-            die "Error: Wrong period '$params{period}'\n";
-        };
+	if ($params{period}) {
+            try {
+	        Time::Crontab->new($params{period});
+            } catch {
+                my $e = shift;
+                die "Error: Wrong period '$params{period}'\n";
+            };
+        }
 
         if (!grep { $params{type} eq $_ } @known_types) {
             die "Error: Unknown type '$params{type}'\n";
