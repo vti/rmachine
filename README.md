@@ -10,19 +10,19 @@ backups.
 
 Here is a typical scenario of my laptop backup:
 
-1) Check every 5 minutes if something changed in Documents/.
-2) If something changed do a snaphot, otherwise do nothing.
-3) Every 30 minutes do a full mirror backup of the snapshots to a ssh server,
-but only if I am connected to my home Wi-Fi network.
+1. Check every 5 minutes if something changed in Documents/.
+2. If something changed do a snaphot, otherwise do nothing.
+3. Every 30 minutes do a full mirror backup of the snapshots to a ssh server,
+   but only if I am connected to my home Wi-Fi network.
 
 ## More on snapshots
 
 A bit more information on how snapshots are made.
 
-1) run rsync in --dry-run to check for the changes
-2) If changes were detected, cp -laR latest directory to a new snapshot directory
-3) rsync old snapshot with the current backup directory
-4) move latest symlink to a new snapshot
+1. run rsync in --dry-run to check for the changes
+2. If changes were detected, cp -laR latest directory to a new snapshot directory
+3. rsync old snapshot with the current backup directory
+4. move latest symlink to a new snapshot
 
 ## Configuring
 
@@ -94,9 +94,9 @@ investigation.
 
 Hooks are scripts run during different phases of the execution.
 
-	pre_hook      Is run before the scenario is started, if the script
-		      exits with non-zero status, rmachine skips this scenario,
+        pre_hook      Is run before the scenario is started, if the script
+                      exits with non-zero status, rmachine skips this scenario,
                       this is the recommended way of canceling a scenario
-	progress_hook Is run during the scenario, script get current percent of
-		      execution
+        progress_hook Is run during the scenario, script get current percent of
+                      execution
         post_hook     Is run after the scenario
