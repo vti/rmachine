@@ -19,10 +19,17 @@ Here is a typical scenario of my laptop backup:
 
 A bit more information on how snapshots are made.
 
-1. run rsync in --dry-run to check for the changes
-2. If changes were detected, cp -laR latest directory to a new snapshot directory
+1. run `rsync` in `--dry-run` to check for the changes
+2. If changes were detected, `cp -laR` latest directory to a new snapshot directory
 3. rsync old snapshot with the current backup directory
-4. move latest symlink to a new snapshot
+4. move `latest` symlink to a new snapshot
+
+Here is a typical snapshots tree structure:
+
+	/home/vti/.snapshots/
+	├── 2014-03-05T23:33:01.4750+0200
+	│   ├── Doc 1.odt
+	└── latest -> /home/vti/.snapshots/2014-03-05T23:33:01.4750+0200
 
 ## Configuring
 
