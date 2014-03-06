@@ -35,7 +35,7 @@ Here is a typical snapshots tree structure:
 
 Here is a configuration for the example shown above:
 
-    nice = 19
+    nice = -n 19
     ionice = -c2 -n7
     
     [scenario:full_sync]
