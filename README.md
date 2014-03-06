@@ -41,16 +41,16 @@ Here is a configuration for the example shown above:
     [scenario:full_sync]
     type = mirror
     period = */30 * * * *
-    source = /home/vti/Documents
-    dest = /home/vti/.snapshots/
+    source = /home/vti/.snapshots/
+    dest = myserver:/home/vti/.backups/laptop/
     exclude = ignore-me
+    hook-before = sh hooks/hook-before-check-ssid.sh my_home_network
     
     [scenario:snapshot]
     type = snapshot
-    period = */1 * * * *
-    source = /home/vti/.snapshots/
-    dest = myserver:/home/vti/.backups/laptop/
-    hook-before = sh hooks/hook-before-check-ssid.sh my_home_network
+    period = */5 * * * *
+    source = /home/vti/Documents/
+    dest = /home/vti/.snapshots/
 
 ## Installation
 
