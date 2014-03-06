@@ -42,6 +42,7 @@ sub run {
 
     my $start_time = time;
 
+    my $any_errors = 0;
     foreach my $scenario (@scenarios) {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
@@ -63,12 +64,15 @@ sub run {
         
             $self->{logger}->log($scenario, 'end', 'Success');
         } catch {
-            my $e = shift;
+            my $e = shift->message;
+
             $self->{logger}->log($scenario, 'end', "Failure: $e");
+
+            $any_errors++;
         };
     }
 
-    $self->{logger}->log('rmachine', 'end', 'Finishing');
+    $self->{logger}->log('rmachine', 'end', 'Finishing: ' . ($any_errors ? 'Some errors' : 'All successful'));
 }
 
 sub _read_config {

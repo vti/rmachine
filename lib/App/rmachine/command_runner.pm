@@ -36,7 +36,7 @@ sub run {
     }
     close $fh;
 
-    App::rmachine::exception::failed_exit->throw if $?;
+    App::rmachine::exception::failed_exit->throw("rv=$?") if $?;
 
     return $?;
 }
