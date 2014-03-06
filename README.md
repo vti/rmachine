@@ -63,12 +63,12 @@ After getting rmachine, an install command should be run:
     $ rmachine install # TODO
 
 This sets up a cron job and creates `~/.rmachine` directory where the default
-config file a log file are placed.
+config and log files are placed.
 
 ## Running
 
-rmachine is ment to be run by cron, but it for the testing or checking your
-configuration it can be run just as normal Perl script.
+rmachine is meant to be run by cron, but for the testing or checking your
+configuration it can be run just as a normal Perl script.
 
     $ rmachine --test
     2014-03-05T23:34:01.7586+0200 [scenario:snapshot] [start] 
@@ -94,8 +94,8 @@ line follows the same pattern:
 
     DATE [source] [action] Optional message
 
-Log file tries to be densed, but all the error are written as is for the easy
-investigation.
+Log file tries to be dense, but all the errors are written AS IS for the ease
+of investigation.
 
 ### Hooks # TODO
 
