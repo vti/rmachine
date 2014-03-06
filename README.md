@@ -48,8 +48,8 @@ Here is a configuration for the example shown above:
 ## Installation
 
 rmachine is available as a normal Perl distribution that can be installed using
-`cpan` or `cpanm`, or as a fat packed file that can be copied to a laptop or a
-remote server.
+`cpan` or `cpanm`, or as a fat packed (TODO) file that can be copied to a
+laptop or a remote server.
 
 After getting rmachine, an install command should be run:
 
