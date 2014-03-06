@@ -14,6 +14,8 @@ sub new {
 
     $self->{test} = $params{test};
     $self->{quiet} = $params{quiet};
+    $self->{nice} = $params{nice};
+    $self->{ionice} = $params{ionice};
 
     return $self;
 }
@@ -23,6 +25,13 @@ sub run {
     my ($command, $output_cb) = @_;
 
     $output_cb ||= sub {};
+
+    if (my $ionice = $self->{ionice}) {
+        $command = "ionice $ionice $command";
+    }
+    if (my $nice = $self->{nice}) {
+        $command = "nice $nice $command";
+    }
 
     print $command, "\n" unless $self->{quiet};
 

@@ -35,8 +35,8 @@ Here is a typical snapshots tree structure:
 
 Here is a configuration for the example shown above:
 
-    nice = 19                                    # TODO
-    ionice = -c2 -n7                             # TODO
+    nice = 19
+    ionice = -c2 -n7
     
     [scenario:full_sync]
     type = mirror

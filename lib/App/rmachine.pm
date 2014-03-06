@@ -56,6 +56,10 @@ sub run {
             }
         }
 
+        my $command_runner = $self->_build_command_runner(nice => $params{nice},
+             ionice => $params{ionice});
+        $params{command_runner} = $command_runner;
+
         if (my $hook = $params{'hook-before'}) {
             $self->{logger}->log($scenario, 'hook-before', 'Running hook-before');
 
@@ -63,7 +67,7 @@ sub run {
             try {
                 $self->{logger}->log($scenario, 'hook-before', 'Started');
 
-                $self->_build_command_runner->run($hook);
+                $command_runner->run($hook);
 
                 $self->{logger}->log($scenario, 'hook-before', 'Finished');
             } catch {
@@ -153,13 +157,14 @@ sub _build_action {
 
     my $action_class = 'App::rmachine::' . $action_name;
 
-    return $action_class->new(%params, command_runner => $self->_build_command_runner);
+    return $action_class->new(%params);
 }
 
 sub _build_command_runner {
     my $self = shift;
+    my (%params) = @_;
 
-    return App::rmachine::command_runner->new(quiet => $self->{quiet}, test => $self->{test});
+    return App::rmachine::command_runner->new(quiet => $self->{quiet}, test => $self->{test}, %params);
 }
 
 1;
