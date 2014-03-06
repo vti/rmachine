@@ -28,8 +28,8 @@ A bit more information on how snapshots are made.
 
 Here is a configuration for the example shown above:
 
-    nice = 19
-    ionice = -c2 -n7
+    nice = 19                                    # TODO
+    ionice = -c2 -n7                             # TODO
     
     [scenario:full_sync]
     type = mirror
@@ -43,7 +43,7 @@ Here is a configuration for the example shown above:
     period = */1 * * * *
     source = /home/vti/.snapshots/
     dest = myserver:/home/vti/.backups/laptop/
-    pre_hook = check-if-home-ssid.sh
+    pre_hook = check-if-home-ssid.sh            # TODO
 
 ## Installation
 
@@ -53,7 +53,7 @@ remote server.
 
 After getting rmachine, an install command should be run:
 
-    $ rmachine install
+    $ rmachine install # TODO
 
 This sets up a cron job and creates `~/.rmachine` directory where the default
 config file a log file are placed.
@@ -90,7 +90,7 @@ line follows the same pattern:
 Log file tries to be densed, but all the error are written as is for the easy
 investigation.
 
-### Hooks
+### Hooks # TODO
 
 Hooks are scripts run during different phases of the execution.
 
