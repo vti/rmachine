@@ -50,7 +50,7 @@ Here is a configuration for the example shown above:
     period = */1 * * * *
     source = /home/vti/.snapshots/
     dest = myserver:/home/vti/.backups/laptop/
-    pre_hook = check-if-home-ssid.sh            # TODO
+    hook-before = sh hooks/hook-before-check-ssid.sh my_home_network
 
 ## Installation
 
@@ -97,16 +97,16 @@ line follows the same pattern:
 Log file tries to be dense, but all the errors are written AS IS for the ease
 of investigation.
 
-### Hooks # TODO
+### Hooks
 
 Hooks are scripts run during different phases of the execution.
 
-    pre_hook      Is run before the scenario is started, if the script
+    hook-before   Is run before the scenario is started, if the script
                   exits with non-zero status, rmachine skips this scenario,
                   this is the recommended way of canceling a scenario
-    progress_hook Is run during the scenario, script get current percent of
+    hook-progress Is run during the scenario, script get current percent of
                   execution
-    post_hook     Is run after the scenario
+    book-after    Is run after the scenario
 
 ## Ideas
 

@@ -47,7 +47,6 @@ sub run {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
         $params{scenario} = $scenario;
-        $params{type} ||= 'mirror';
         $params{logger} = $self->{logger};
 
         if (!$self->{force} && $params{period}) {
@@ -55,6 +54,25 @@ sub run {
                 $self->{logger}->log($scenario, 'skip', 'Does not match period');
                 next;
             }
+        }
+
+        if (my $hook = $params{'hook-before'}) {
+            $self->{logger}->log($scenario, 'hook-before', 'Running hook-before');
+
+            my $skip;
+            try {
+                $self->{logger}->log($scenario, 'hook-before', 'Started');
+
+                $self->_build_command_runner->run($hook);
+
+                $self->{logger}->log($scenario, 'hook-before', 'Finished');
+            } catch {
+	        $self->{logger}->log($scenario, 'hook-before', 'Failed');
+
+                $skip++;
+            };
+
+            next if $skip;
         }
 
         $self->{logger}->log($scenario, 'start');
