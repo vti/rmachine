@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Exporter';
 
-our @EXPORT_OK = qw(build_excludes is_dir_empty current_time);
+our @EXPORT_OK = qw(build_excludes is_dir_empty current_time join_dirs join_dirs_and_file);
 
 use Time::Piece;
 use Time::HiRes qw(gettimeofday);
@@ -31,6 +31,23 @@ sub current_time {
     $microseconds =~ s{(\d{4})\d+}{$1};
 
     return $time . '.' . $microseconds . Time::Piece->new->strftime('%z');
+}
+
+sub join_dirs_and_file {
+    my (@dirs) = @_;
+
+    return '' unless @dirs;
+
+    my $front = shift @dirs;
+    $front =~ s/\/$//;
+    @dirs = map { s/^\///; s/\/$//; $_ } @dirs;
+    join '/', $front, @dirs;
+}
+
+sub join_dirs {
+    return '' unless @_;
+
+    join_dirs_and_file(@_) . '/';
 }
 
 1;

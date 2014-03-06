@@ -6,7 +6,7 @@ use warnings;
 use Cwd qw(realpath);
 use App::rmachine::command::rsync;
 use App::rmachine::mirror;
-use App::rmachine::util qw(is_dir_empty current_time);
+use App::rmachine::util qw(is_dir_empty current_time join_dirs join_dirs_and_file);
 
 sub new {
     my $class = shift;
@@ -31,37 +31,38 @@ sub new {
 sub run {
     my $self = shift;
 
-    my $latest_link = "$self->{dest}/latest";
+    my $latest_link = join_dirs_and_file $self->{dest}, 'latest';
 
     if (-e $latest_link && !-l $latest_link) {
-        die "Error: link '$self->{dest}/latest' is not a symlink\n";
+        die "Error: link '$latest_link' is not a symlink\n";
     }
+
+    my $new_snapshot = $self->_build_new_snapshot_name();
+    my $new_snapshot_dest = join_dirs $self->{dest}, $new_snapshot;
 
     if (!-e $latest_link) {
         if (!is_dir_empty($self->{dest})) {
-	    die "Error: link '$self->{dest}/latest' does not exist, but '$self->{dest}' is not empty\n";
+	    die "Error: link '$latest_link' does not exist, but '$self->{dest}' is not empty\n";
         }
 	else {
-            my $new_snapshot = $self->_build_new_snapshot_name();
-
 	    my $mirror = $self->_build_mirror_action(
 		command_runner => $self->{command_runner},
 		source => $self->{source},
-		dest => "$self->{dest}/$new_snapshot/"
+		dest => $new_snapshot_dest
 	    );
 	    $mirror->run;
 
-            return $self->{command_runner}->run("ln -s '$self->{dest}/$new_snapshot' '$self->{dest}/latest'");
+            return $self->{command_runner}->run("ln -s '$new_snapshot_dest' '$latest_link'");
 	}
     }
 
     my $changes = '';
     my $rsync_changes = App::rmachine::command::rsync->new(
         command_runner => $self->{command_runner},
-        source => "$self->{source}/",
+        source => join_dirs($self->{source}),
+        dest => join_dirs($latest_link),
+        exclude => $self->{exclude},
         'dry-run' => 1,
-        dest => "$self->{dest}/latest/",
-        exclude => $self->{exclude}
     )->run(sub {
         $changes .= $_ if /rmachine:/;
     });
@@ -69,22 +70,20 @@ sub run {
     if ($changes) {
         $self->log('changes', 'Found changes');
 
-        my $new_snapshot = $self->_build_new_snapshot_name();
-
-	my $latest_resolved = realpath("$self->{dest}/latest");
-        $self->{command_runner}->run("mkdir '$self->{dest}/$new_snapshot'");
-        $self->{command_runner}->run("cp -alR $latest_resolved/* $self->{dest}/$new_snapshot");
+	my $latest_resolved = realpath("$latest_link");
+        $self->{command_runner}->run("mkdir '$new_snapshot_dest'");
+        $self->{command_runner}->run("cp -alR $latest_resolved/* $new_snapshot_dest");
 
         $self->log('rsync');
         App::rmachine::command::rsync->new(
             command_runner => $self->{command_runner},
             source => "$self->{source}/",
-            dest => "$self->{dest}/$new_snapshot/",
+            dest => $new_snapshot_dest,
             exclude => $self->{exclude}
         )->run;
 
-        $self->{command_runner}->run("rm $self->{dest}/latest");
-        $self->{command_runner}->run("ln -s $self->{dest}/$new_snapshot $self->{dest}/latest");
+        $self->{command_runner}->run("rm $latest_link");
+        $self->{command_runner}->run("ln -s $new_snapshot_dest $latest_link");
     }
     else {
         $self->log('changes', 'No changes');
