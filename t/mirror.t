@@ -49,13 +49,27 @@ subtest 'ignore exluded' => sub {
     is_deeply $result, {foo => 1};
 };
 
+subtest 'log actions' => sub {
+    my $source = TestUtils->prepare_tree();
+    my $dest = TestUtils->prepare_tree();
+
+    my $output = '';
+    my $logger = Test::MonkeyMock->new;
+    $logger->mock(log => sub { shift; $output .= join '|', @_ });
+    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+
+    $action->run;
+
+    is $output, 'my scenario|rsync';
+};
+
 sub _build_action {
     my (%params) = @_;
 
-    my $logger = Test::MonkeyMock->new;
-    $logger->mock(log => sub {});
+    my $logger = $params{logger} || Test::MonkeyMock->new->mock(log => sub {});
 
     return App::rmachine::mirror->new(
+        scenario => 'my scenario',
         command_runner => App::rmachine::command_runner->new,
         logger => $logger, %params
     );

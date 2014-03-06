@@ -12,6 +12,7 @@ sub new {
     my $self = {};
     bless $self, $class;
 
+    $self->{scenario} = $params{scenario};
     $self->{command_runner} = $params{command_runner};
     $self->{logger} = $params{logger};
 

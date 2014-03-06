@@ -71,6 +71,33 @@ subtest 'create new snapshot' => sub {
     is_deeply $result->{$date2}, {foo => 1, new_file => 1};
 };
 
+subtest 'create new snapshot when source is empty' => sub {
+    my $source = TestUtils->prepare_tree();
+    my $dest = TestUtils->prepare_tree();
+
+    my $action = _build_action(source => $source, dest => $dest);
+    $action->run;
+
+    open my $fh, '>', "$source/new_file";
+    print $fh 'hello';
+    close $fh;
+
+    $action = _build_action(source => $source, dest => $dest);
+    $action->run;
+
+    my $result = TestUtils->read_tree($dest);
+
+    ok -l "$dest/latest";
+    is_deeply $result->{latest}, {new_file => 1};
+
+    my ($date1, $date2) = sort keys %$result;
+    like $date1, qr/\d+-\d+-\d+T\d+:\d+:\d/;
+    is_deeply $result->{$date1}, {};
+
+    like $date2, qr/\d+-\d+-\d+T\d+:\d+:\d/;
+    is_deeply $result->{$date2}, {new_file => 1};
+};
+
 subtest 'not create new snapshot when nothing changed' => sub {
     my $source = TestUtils->prepare_tree(foo => 'bar');
     my $dest = TestUtils->prepare_tree();
@@ -90,13 +117,80 @@ subtest 'not create new snapshot when nothing changed' => sub {
     is scalar(@dates), 2;
 };
 
+subtest 'correct log when creating new snapshot' => sub {
+    my $source = TestUtils->prepare_tree;
+    my $dest = TestUtils->prepare_tree;
+
+    my @output;
+    my $logger = Test::MonkeyMock->new;
+    $logger->mock(log => sub { shift; push @output, join '|', @_ });
+
+    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action->run;
+
+    is_deeply \@output, [
+        'my scenario|latest|Did not find latest symlink',
+        'my scenario|mirror|Mirroring first snapshot',
+        'my scenario|rsync',
+        'my scenario|ln|Symlinking latest',
+    ];
+};
+
+subtest 'correct log when no changes' => sub {
+    my $source = TestUtils->prepare_tree;
+    my $dest = TestUtils->prepare_tree;
+
+    my @output;
+    my $logger = Test::MonkeyMock->new;
+    $logger->mock(log => sub { shift; push @output, join '|', @_ });
+
+    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action->run;
+
+    $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action->run;
+
+    shift @output for 1 .. 4;
+    is_deeply \@output, [
+        'my scenario|changes|No changes',
+    ];
+};
+
+subtest 'correct log when creating next snapshot' => sub {
+    my $source = TestUtils->prepare_tree(haha => 'there');
+    my $dest = TestUtils->prepare_tree;
+
+    my @output;
+    my $logger = Test::MonkeyMock->new;
+    $logger->mock(log => sub { shift; push @output, join '|', @_ });
+
+    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action->run;
+
+    open my $fh, '>', "$source/new_file";
+    print $fh 'hello';
+    close $fh;
+
+    $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action->run;
+
+    shift @output for 1 .. 4;
+    is_deeply \@output, [
+        'my scenario|changes|Found changes',
+        'my scenario|mkdir|Making new snapshot directory',
+        'my scenario|cp|Copying',
+        'my scenario|rsync',
+        'my scenario|rm|Removing latest link',
+        'my scenario|ln|Symlinking latest'
+    ];
+};
+
 sub _build_action {
     my (%params) = @_;
 
-    my $logger = Test::MonkeyMock->new;
-    $logger->mock(log => sub {});
+    my $logger = $params{logger} || Test::MonkeyMock->new->mock(log => sub {});
 
-    return App::rmachine::snapshot->new(command_runner => App::rmachine::command_runner->new, logger => $logger, %params);
+    return App::rmachine::snapshot->new(scenario => 'my scenario', command_runner => App::rmachine::command_runner->new, logger => $logger, %params);
 }
 
 done_testing;
