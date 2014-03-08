@@ -131,7 +131,7 @@ subtest 'correct log when creating new snapshot' => sub {
     is_deeply \@output, [
         'my scenario|latest|Did not find latest symlink',
         'my scenario|mirror|Mirroring first snapshot',
-        'my scenario|rsync',
+        'my scenario|run|rsync',
         'my scenario|ln|Symlinking latest',
     ];
 };

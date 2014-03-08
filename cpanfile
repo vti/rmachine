@@ -9,8 +9,9 @@ requires 'Time::Piece';
 requires 'Config::Tiny';
 requires 'Error::Tiny';
 requires 'File::ReadBackwards';
-requires 'Time::Crontab';
+requires 'Algorithm::Cron';
 
 requires 'Test::Fatal';
 requires 'Test::MonkeyMock';
 requires 'Test::More';
+requires 'Test::MockTime';

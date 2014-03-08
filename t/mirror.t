@@ -60,7 +60,7 @@ subtest 'log actions' => sub {
 
     $action->run;
 
-    is $output, 'my scenario|rsync';
+    is $output, 'my scenario|run|rsync';
 };
 
 sub _build_action {
