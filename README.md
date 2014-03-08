@@ -58,7 +58,7 @@ Periods are cron-like schedules. The difference is that they are executed even
 if the time of execution has passed because the machine was off for example,
 this makes these periods suitable for using on laptops.
 
-Here is how a decision is made:
+Here is how the decision is made:
 
 1. Get the last time the scenario was run
 2. If it was never run -> run immediately
@@ -67,7 +67,7 @@ Here is how a decision is made:
 4. If it has to be run right now -> run immediately
 5. Skip the scenario otherwise
 
-If there is no period specified or `force` options is used the scenario is run
+If there is no period specified or `force` option is used the scenario is run
 immediately.
 
 ## Installation
