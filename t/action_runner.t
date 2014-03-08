@@ -165,6 +165,41 @@ subtest 'abort when hook-before fails' => sub {
     like $logger->tail(5), qr/Skip because of failed hook/;
 };
 
+subtest 'run hook-after' => sub {
+    my $action         = _mock_action();
+    my $logger         = _prepare_logger();
+    my $command_runner = _mock_command_runner();
+
+    my $runner = _build_runner(
+        logger         => $logger,
+        action         => $action,
+        command_runner => $command_runner
+    );
+    $runner->run('scenario', 'hook-after' => 'command');
+
+    ok $action->mocked_called('run');
+    like $logger->tail(5), qr/Running hook-after/;
+    like $logger->tail(5), qr/\Q[hook-after] Started\E/;
+    like $logger->tail(5), qr/\Q[hook-after] Finished\E/;
+};
+
+subtest 'ignore when hook-after fails' => sub {
+    my $action         = _mock_action();
+    my $logger         = _prepare_logger();
+    my $command_runner = _mock_command_runner(run => sub { die 'error' });
+
+    my $runner = _build_runner(
+        logger         => $logger,
+        action         => $action,
+        command_runner => $command_runner
+    );
+    $runner->run('scenario', 'hook-after' => 'command');
+
+    like $logger->tail(5), qr/Running hook-after/;
+    like $logger->tail(5), qr/\Q[hook-after] Started\E/;
+    like $logger->tail(5), qr/\Q[hook-after] Failed\E/;
+};
+
 sub _mock_action {
     my (%params) = @_;
 

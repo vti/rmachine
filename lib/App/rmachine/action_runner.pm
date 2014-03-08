@@ -78,6 +78,10 @@ sub run {
 
         $e->throw;
     };
+
+    $self->_run_hook_after($scenario, %params);
+
+    return $self;
 }
 
 sub log {
@@ -117,6 +121,28 @@ sub _skip_because_of_hook_before {
     }
 
     return 0;
+}
+
+sub _run_hook_after {
+    my $self = shift;
+    my ($scenario, %params) = @_;
+
+    if (my $hook = $params{'hook-after'}) {
+        $self->{logger}->log($scenario, 'hook-after', 'Running hook-after');
+
+        my $command_runner = $self->{command_runner};
+
+        try {
+            $self->{logger}->log($scenario, 'hook-after', 'Started');
+
+            $command_runner->run($hook);
+
+            $self->{logger}->log($scenario, 'hook-after', 'Finished');
+        }
+        catch {
+            $self->{logger}->log($scenario, 'hook-after', 'Failed');
+        };
+    }
 }
 
 sub _find_last_run {
