@@ -8,21 +8,21 @@ use Getopt::Long;
 use App::rmachine;
 
 open my $lock, '<', __FILE__ or die "Can't lock myself\n";
-flock $lock, LOCK_EX|LOCK_NB or do { warn "Already running\n"; exit 255 };
+flock $lock, LOCK_EX | LOCK_NB or do { warn "Already running\n"; exit 255 };
 
-my $test = 0;
-my $force = 0;
-my $quiet = 0;
+my $test        = 0;
+my $force       = 0;
+my $quiet       = 0;
 my $config_file = '';
-my $log_file = '';
-my $version = '';
+my $log_file    = '';
+my $version     = '';
 GetOptions(
-    'test' => \$test,
-    'force' => \$force,
-    'quiet' => \$quiet,
+    'test'     => \$test,
+    'force'    => \$force,
+    'quiet'    => \$quiet,
     'config=s' => \$config_file,
-    'log=s' => \$log_file,
-    'version' => \$version,
+    'log=s'    => \$log_file,
+    'version'  => \$version,
 ) or die("Error in command line arguments\n");
 
 if ($version) {
@@ -30,4 +30,10 @@ if ($version) {
     exit 0;
 }
 
-App::rmachine->new(config_file => $config_file, log_file => $log_file, quiet => $quiet, test => $test, force => $force)->run(@ARGV);
+App::rmachine->new(
+    config_file => $config_file,
+    log_file    => $log_file,
+    quiet       => $quiet,
+    test        => $test,
+    force       => $force
+)->run(@ARGV);

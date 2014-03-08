@@ -26,10 +26,10 @@ A bit more information on how snapshots are made.
 
 Here is a typical snapshots tree structure:
 
-	/home/vti/.snapshots/
-	├── 2014-03-05T23:33:01.4750+0200
-	│   ├── Doc 1.odt
-	└── latest -> /home/vti/.snapshots/2014-03-05T23:33:01.4750+0200
+    /home/vti/.snapshots/
+    ├── 2014-03-05T23:33:01.4750+0200
+    │   ├── Doc 1.odt
+    └── latest -> /home/vti/.snapshots/2014-03-05T23:33:01.4750+0200
 
 ## Configuring
 
@@ -37,15 +37,15 @@ Here is a configuration for the example shown above:
 
     nice = -n 19
     ionice = -c2 -n7
-    
+
     [scenario:full_sync]
     type = mirror
     period = */30 * * * *
     source = /home/vti/.snapshots/
     dest = myserver:/home/vti/.backups/laptop/
     exclude = ignore-me
-    hook-before = sh hooks/hook-before-check-ssid.sh my_home_network
-    
+    hook-before = sh hooks/check-ssid.sh my_home_network
+
     [scenario:snapshot]
     type = snapshot
     period = */5 * * * *
@@ -122,8 +122,6 @@ Hooks are scripts run during different phases of the execution.
     hook-before   Is run before the scenario is started, if the script
                   exits with non-zero status, rmachine skips this scenario,
                   this is the recommended way of canceling a scenario
-    hook-progress Is run during the scenario, script get current percent of
-                  execution
     book-after    Is run after the scenario
 
 ## Ideas
