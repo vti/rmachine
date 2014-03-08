@@ -52,6 +52,24 @@ Here is a configuration for the example shown above:
     source = /home/vti/Documents/
     dest = /home/vti/.snapshots/
 
+### Periods
+
+Periods are cron-like schedules. The difference is that they are executed even
+if the time of execution has passed because the machine was off for example,
+this makes these periods suitable for using on laptops.
+
+Here is how a decision is made:
+
+1. Get the last time the scenario was run
+2. If it was never run -> run immediately
+3. If it was run long ago and the next execution time has passed -> run
+   immediately
+4. If it has to be run right now -> run immediately
+5. Skip the scenario otherwise
+
+If there is no period specified or `force` options is used the scenario is run
+immediately.
+
 ## Installation
 
 rmachine is available as a normal Perl distribution that can be installed using
