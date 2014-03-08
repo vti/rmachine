@@ -12,9 +12,9 @@ sub new {
     my $self = {};
     bless $self, $class;
 
-    $self->{test} = $params{test};
-    $self->{quiet} = $params{quiet};
-    $self->{nice} = $params{nice};
+    $self->{test}   = $params{test};
+    $self->{quiet}  = $params{quiet};
+    $self->{nice}   = $params{nice};
     $self->{ionice} = $params{ionice};
 
     return $self;
@@ -22,9 +22,9 @@ sub new {
 
 sub run {
     my $self = shift;
-    my ($command, $output_cb) = @_;
+    my ($command, %params) = @_;
 
-    $output_cb ||= sub {};
+    my $output_cb = $params{output_cb} || sub { };
 
     if (my $ionice = $self->{ionice}) {
         $command = "ionice $ionice $command";
@@ -37,6 +37,18 @@ sub run {
 
     return 0 if $self->{test};
 
+    my %env_backup;
+    if (my $env = $params{env}) {
+        while ($env =~ m/\s*([^=]+)\s*=\s*(?:"([^"]+)"|([^\s]+))/cg) {
+            my $key = $1;
+            my $val = $2 || $3;
+
+            $env_backup{$key} = $ENV{$key};
+
+            $ENV{$key} = $val;
+        }
+    }
+
     open my $fh, "$command |" or die "Can't fork\n";
 
     while (<$fh>) {
@@ -44,6 +56,10 @@ sub run {
         print unless $self->{quiet};
     }
     close $fh;
+
+    foreach my $key (keys %env_backup) {
+        $ENV{$key} = $env_backup{$key};
+    }
 
     App::rmachine::exception::failed_exit->throw("rv=$?") if $?;
 

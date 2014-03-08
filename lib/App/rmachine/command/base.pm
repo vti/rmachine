@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 require Carp;
-use App::rmachine::command_runner;
 
 sub new {
     my $class = shift;
@@ -22,10 +21,10 @@ sub new {
 
 sub run {
     my $self = shift;
-    my ($output_cb) = @_;
+    my (%params) = @_;
 
     my $command = $self->_build_command;
-    return $self->{command_runner}->run($command, $output_cb);
+    return $self->{command_runner}->run($command, %params);
 }
 
 sub _build_command {

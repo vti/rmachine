@@ -6,7 +6,8 @@ use warnings;
 use Cwd qw(realpath);
 use App::rmachine::command::rsync;
 use App::rmachine::mirror;
-use App::rmachine::util qw(is_dir_empty current_time join_dirs join_dirs_and_file);
+use App::rmachine::util
+  qw(is_dir_empty current_time join_dirs join_dirs_and_file);
 
 sub new {
     my $class = shift;
@@ -15,15 +16,15 @@ sub new {
     my $self = {};
     bless $self, $class;
 
-    $self->{scenario} = $params{scenario};
+    $self->{scenario}       = $params{scenario};
     $self->{command_runner} = $params{command_runner};
 
     $self->{source} = $params{source};
-    $self->{dest} = $params{dest};
+    $self->{dest}   = $params{dest};
 
-    $self->{quiet} = $params{quiet};
+    $self->{quiet}   = $params{quiet};
     $self->{exclude} = $params{exclude};
-    $self->{logger} = $params{logger};
+    $self->{logger}  = $params{logger};
 
     return $self;
 }
@@ -43,34 +44,38 @@ sub run {
     if (!-e $latest_link) {
         $self->log('latest', 'Did not find latest symlink');
         if (!is_dir_empty($self->{dest})) {
-	    die "Error: link '$latest_link' does not exist, but '$self->{dest}' is not empty\n";
+            die
+"Error: link '$latest_link' does not exist, but '$self->{dest}' is not empty\n";
         }
-	else {
+        else {
             $self->log('mirror', 'Mirroring first snapshot');
-	    my $mirror = $self->_build_mirror_action(
-		scenario => $self->{scenario},
-		command_runner => $self->{command_runner},
-		source => $self->{source},
-		dest => $new_snapshot_dest
-	    );
-	    $mirror->run;
+            my $mirror = $self->_build_mirror_action(
+                scenario       => $self->{scenario},
+                command_runner => $self->{command_runner},
+                source         => $self->{source},
+                dest           => $new_snapshot_dest
+            );
+            $mirror->run;
 
             $self->log('ln', 'Symlinking latest');
-            $self->{command_runner}->run("ln -s '$new_snapshot_dest' '$latest_link'");
+            $self->{command_runner}
+              ->run("ln -s '$new_snapshot_dest' '$latest_link'");
             return;
-	}
+        }
     }
 
-    my $changes = '';
+    my $changes       = '';
     my $rsync_changes = App::rmachine::command::rsync->new(
         command_runner => $self->{command_runner},
-        source => join_dirs($self->{source}),
-        dest => join_dirs($latest_link),
-        exclude => $self->{exclude},
-        'dry-run' => 1,
-    )->run(sub {
-        $changes .= $_ if /rmachine:/;
-    });
+        source         => join_dirs($self->{source}),
+        dest           => join_dirs($latest_link),
+        exclude        => $self->{exclude},
+        'dry-run'      => 1,
+      )->run(
+        output_cb => sub {
+            $changes .= $_ if /rmachine:/;
+        }
+      );
 
     if ($changes) {
         $self->log('changes', 'Found changes');
@@ -79,14 +84,15 @@ sub run {
         $self->{command_runner}->run("mkdir '$new_snapshot_dest'");
 
         $self->log('cp', 'Copying');
-        $self->{command_runner}->run("cp -alR $latest_link '$new_snapshot_dest'");
+        $self->{command_runner}
+          ->run("cp -alR $latest_link '$new_snapshot_dest'");
 
         $self->log('rsync');
         App::rmachine::command::rsync->new(
             command_runner => $self->{command_runner},
-            source => "$self->{source}/",
-            dest => $new_snapshot_dest,
-            exclude => $self->{exclude}
+            source         => "$self->{source}/",
+            dest           => $new_snapshot_dest,
+            exclude        => $self->{exclude}
         )->run;
 
         $self->log('rm', 'Removing latest link');
@@ -116,7 +122,7 @@ sub _build_new_snapshot_name {
 
 sub _build_mirror_action {
     my $self = shift;
-    
+
     return App::rmachine::mirror->new(logger => $self->{logger}, @_);
 }
 
