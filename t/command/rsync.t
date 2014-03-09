@@ -11,12 +11,12 @@ subtest 'run command with correct arguments' => sub {
     my $command = _build_command(command_runner => $command_runner, source => '/foo/bar', dest => '/foo/baz');
 
     my $cb = sub {};
-    $command->run($cb);
+    $command->run(output_cb => $cb);
 
-    my ($got_cmd, $got_cb) = $command_runner->mocked_call_args('run');
+    my ($got_cmd, %params) = $command_runner->mocked_call_args('run');
 
     is $got_cmd, 'rsync -rtDH --links --no-p --no-g --no-o --delete --delete-excluded -i --out-format="rmachine: %i %n%L" --chmod=Du+wx  /foo/bar /foo/baz';
-    is $got_cb, $cb;
+    is $params{output_cb}, $cb;
 };
 
 subtest 'run command with dry-run' => sub {

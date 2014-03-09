@@ -8,17 +8,17 @@ use App::rmachine::command::base;
 
 subtest 'run command with correct arguments' => sub {
     my $command_runner = Test::MonkeyMock->new;
-    $command_runner->mock(run => sub {});
+    $command_runner->mock(run => sub { });
 
     my $command = _build_command(command_runner => $command_runner);
 
-    my $cb = sub {};
-    $command->run($cb);
+    my $cb = sub { };
+    $command->run(output_cb => $cb);
 
-    my ($got_cmd, $got_cb) = $command_runner->mocked_call_args('run');
+    my ($got_cmd, %params) = $command_runner->mocked_call_args('run');
 
     is $got_cmd, 'my command';
-    is $got_cb, $cb;
+    is $params{output_cb}, $cb;
 };
 
 sub _build_command {
@@ -34,4 +34,4 @@ done_testing;
 package App::rmachine::command::test;
 use base 'App::rmachine::command::base';
 
-sub _build_command {'my command'}
+sub _build_command { 'my command' }
