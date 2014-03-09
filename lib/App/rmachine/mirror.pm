@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use App::rmachine::command::rsync;
+use App::rmachine::command::duplicity;
 
 sub new {
     my $class = shift;
@@ -11,6 +12,11 @@ sub new {
 
     my $self = {};
     bless $self, $class;
+
+    $self->{cmd} = 'rsync';
+
+    $self->{encryption} = $params{encryption};
+    $self->{password}   = $params{password};
 
     $self->{scenario}       = $params{scenario};
     $self->{command_runner} = $params{command_runner};
@@ -21,15 +27,28 @@ sub new {
     $self->{dest}    = $params{dest};
     $self->{exclude} = $params{exclude};
 
+    if (my $encryption = $self->{encryption}) {
+        if ($encryption eq 'gpg') {
+            $self->{cmd} = 'duplicity';
+
+            die "Password is required when using gpg encryption"
+              unless $self->{password};
+        }
+        else {
+            die "Ecnryption '$encryption' is not supported";
+        }
+    }
+
     return $self;
 }
 
 sub run {
     my $self = shift;
 
-    $self->log('run', 'rsync');
+    $self->log('run', $self->{cmd});
+
     return $self->_build_command(
-        env            => $self->{env},
+        $self->{cmd},
         source         => $self->{source},
         dest           => $self->{dest},
         exclude        => $self->{exclude},
@@ -45,8 +64,14 @@ sub log {
 
 sub _build_command {
     my $self = shift;
+    my ($command, %params) = @_;
 
-    return App::rmachine::command::rsync->new(@_);
+    if ($command eq 'duplicity') {
+        $params{env} = 'PASSPHRASE=' . $self->{password};
+    }
+
+    my $command_class = 'App::rmachine::command::' . $command;
+    return $command_class->new(%params);
 }
 
 1;

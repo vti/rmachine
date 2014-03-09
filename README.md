@@ -3,10 +3,10 @@
 WARNING: This is a complete documentation of the incomplete script, so the docs
 decsribe more than is implemented for now! The work is still in progress.
 
-rmachine is a simple, yet extensible backup tool, that uses rsync and harlinks
-underneath. It supports two types of backups: mirrors and snapshots. Mirrors
-are just exact copies of your directories, whether snapshots are incremented
-backups.
+rmachine is a simple, yet extensible backup tool, that uses rsync (or duplicity
+in case of encryption) and harlinks underneath. It supports two types of
+backups: mirrors and snapshots. Mirrors are just exact copies of your
+directories, whether snapshots are incremented backups.
 
 Here is a typical scenario of my laptop backup:
 
@@ -69,6 +69,20 @@ Here is how the decision is made:
 
 If there is no period specified or `force` option is used the scenario is run
 immediately.
+
+### Encryption
+
+GPG encryption is supported so far. In this case a `duplicity` is used and
+a password is aditionally required. `source` and `dest` options have to be
+changed in order to work with `duplicity` (I plan to make this easier and more
+standard between rsync and duplicity).
+
+    [scenario:mirror_with_encryption]
+    type = mirror
+    encryption = gpg
+    password = mypassword
+    source = /home/vti/.snapshots/
+    dest = scp://myserver//home/vti/.backups/laptop/
 
 ## Installation
 
