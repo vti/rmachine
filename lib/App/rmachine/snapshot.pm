@@ -19,6 +19,7 @@ sub new {
     $self->{scenario}       = $params{scenario};
     $self->{command_runner} = $params{command_runner};
 
+    $self->{env}    = $params{env};
     $self->{source} = $params{source};
     $self->{dest}   = $params{dest};
 
@@ -44,12 +45,13 @@ sub run {
     if (!-e $latest_link) {
         $self->log('latest', 'Did not find latest symlink');
         if (!is_dir_empty($self->{dest})) {
-            die
-"Error: link '$latest_link' does not exist, but '$self->{dest}' is not empty\n";
+            die "Error: link '$latest_link' does not exist,"
+              . " but '$self->{dest}' is not empty\n";
         }
         else {
             $self->log('mirror', 'Mirroring first snapshot');
             my $mirror = $self->_build_mirror_action(
+                env            => $self->{env},
                 scenario       => $self->{scenario},
                 command_runner => $self->{command_runner},
                 source         => $self->{source},

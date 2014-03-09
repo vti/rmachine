@@ -9,6 +9,7 @@ use Error::Tiny;
 use Config::Tiny;
 use App::rmachine::logger;
 use App::rmachine::action_runner;
+use App::rmachine::command_runner;
 
 sub new {
     my $class = shift;

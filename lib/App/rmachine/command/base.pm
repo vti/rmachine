@@ -12,6 +12,7 @@ sub new {
     my $self = {};
     bless $self, $class;
 
+    $self->{env}            = $params{env};
     $self->{command_runner} = $params{command_runner};
 
     Carp::croak('command_runner is required') unless $self->{command_runner};
@@ -24,13 +25,13 @@ sub run {
     my (%params) = @_;
 
     my $command = $self->_build_command;
-    return $self->{command_runner}->run($command, %params);
+    return $self->{command_runner}->run($command, env => $self->{env}, %params);
 }
 
 sub _build_command {
     my $self = shift;
 
-    ...
+    ...;
 }
 
 1;

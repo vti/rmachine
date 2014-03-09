@@ -16,6 +16,7 @@ sub new {
     $self->{command_runner} = $params{command_runner};
     $self->{logger}         = $params{logger};
 
+    $self->{env}     = $params{env};
     $self->{source}  = $params{source};
     $self->{dest}    = $params{dest};
     $self->{exclude} = $params{exclude};
@@ -28,6 +29,7 @@ sub run {
 
     $self->log('run', 'rsync');
     return $self->_build_command(
+        env            => $self->{env},
         source         => $self->{source},
         dest           => $self->{dest},
         exclude        => $self->{exclude},
