@@ -3,37 +3,55 @@
 use strict;
 use warnings;
 
-use Fcntl ':flock';
 use Getopt::Long;
 use App::rmachine;
+use App::rmachine::backup;
 
-open my $lock, '<', __FILE__ or die "Can't lock myself\n";
-flock $lock, LOCK_EX | LOCK_NB or do { warn "Already running\n"; exit 255 };
+my @command_argv;
+my @commands = qw(help backup);
+my $command;
+for (my $i = 0; $i < @ARGV; $i++) {
+    if (grep { $ARGV[$i] eq $_ } @commands) {
+        $command      = $ARGV[$i];
+        @command_argv = @ARGV[$i + 1 .. $#ARGV];
+        splice @ARGV, $i + 1;
+        last;
+    }
+}
 
-my $test        = 0;
-my $force       = 0;
-my $quiet       = 0;
-my $config_file = '';
-my $log_file    = '';
-my $version     = '';
-GetOptions(
-    'test'     => \$test,
-    'force'    => \$force,
-    'quiet'    => \$quiet,
-    'config=s' => \$config_file,
-    'log=s'    => \$log_file,
-    'version'  => \$version,
-) or die("Error in command line arguments\n");
+if (!$command && !@ARGV) {
+    die <<"EOH";
+Usage: rmachine [--version]
+       rmachine <command> [arguments]
+
+Available commands:
+
+    @commands
+
+For help run
+
+    rmachine help <command>
+
+EOH
+}
+
+my $version = '';
+GetOptions('version' => \$version)
+  or die("Error in command line arguments\n");
 
 if ($version) {
     print 'rmachine: ' . $App::rmachine::VERSION, "\n";
     exit 0;
 }
 
-App::rmachine->new(
-    config_file => $config_file,
-    log_file    => $log_file,
-    quiet       => $quiet,
-    test        => $test,
-    force       => $force
-)->run(@ARGV);
+if ($command eq 'help') {
+    my ($help_for_command) = @command_argv;
+    die "Usage: rmachine help <command>" unless $help_for_command;
+
+    my $command_class = 'App::rmachine::' . $help_for_command;
+    print $command_class->help;
+}
+else {
+    my $command_class = 'App::rmachine::' . $command;
+    $command_class->new(\@command_argv)->run;
+}
