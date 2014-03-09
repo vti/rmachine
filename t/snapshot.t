@@ -19,13 +19,15 @@ subtest 'throw when latest link is not a link' => sub {
     like exception { $action->run }, qr/Error: link '.*?' is not a symlink/;
 };
 
-subtest 'throw when latest does not exist but dest directory is not empty' => sub {
+subtest 'throw when latest does not exist but dest directory is not empty' =>
+  sub {
     my $tree = TestUtils->prepare_tree(foo => '123');
 
     my $action = _build_action(dest => $tree);
 
-    like exception { $action->run }, qr/Error: link '.*?' does not exist, but '.*?' is not empty/;
-};
+    like exception { $action->run },
+      qr/Error: link '.*?' does not exist, but '.*?' is not empty/;
+  };
 
 subtest 'run mirror when not latest link' => sub {
     my $source = TestUtils->prepare_tree(foo => 'bar');
@@ -73,7 +75,7 @@ subtest 'create new snapshot' => sub {
 
 subtest 'create new snapshot when source is empty' => sub {
     my $source = TestUtils->prepare_tree();
-    my $dest = TestUtils->prepare_tree();
+    my $dest   = TestUtils->prepare_tree();
 
     my $action = _build_action(source => $source, dest => $dest);
     $action->run;
@@ -119,41 +121,43 @@ subtest 'not create new snapshot when nothing changed' => sub {
 
 subtest 'correct log when creating new snapshot' => sub {
     my $source = TestUtils->prepare_tree;
-    my $dest = TestUtils->prepare_tree;
+    my $dest   = TestUtils->prepare_tree;
 
     my @output;
     my $logger = Test::MonkeyMock->new;
     $logger->mock(log => sub { shift; push @output, join '|', @_ });
 
-    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    my $action =
+      _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
-    is_deeply \@output, [
+    is_deeply \@output,
+      [
         'my scenario|latest|Did not find latest symlink',
         'my scenario|mirror|Mirroring first snapshot',
         'my scenario|run|rsync',
         'my scenario|ln|Symlinking latest',
-    ];
+      ];
 };
 
 subtest 'correct log when no changes' => sub {
     my $source = TestUtils->prepare_tree;
-    my $dest = TestUtils->prepare_tree;
+    my $dest   = TestUtils->prepare_tree;
 
     my @output;
     my $logger = Test::MonkeyMock->new;
     $logger->mock(log => sub { shift; push @output, join '|', @_ });
 
-    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    my $action =
+      _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
-    $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action =
+      _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
     shift @output for 1 .. 4;
-    is_deeply \@output, [
-        'my scenario|changes|No changes',
-    ];
+    is_deeply \@output, ['my scenario|changes|No changes',];
 };
 
 subtest 'correct log when creating next snapshot' => sub {
@@ -164,33 +168,41 @@ subtest 'correct log when creating next snapshot' => sub {
     my $logger = Test::MonkeyMock->new;
     $logger->mock(log => sub { shift; push @output, join '|', @_ });
 
-    my $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    my $action =
+      _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
     open my $fh, '>', "$source/new_file";
     print $fh 'hello';
     close $fh;
 
-    $action = _build_action(source => $source, dest => $dest, logger => $logger);
+    $action =
+      _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
     shift @output for 1 .. 4;
-    is_deeply \@output, [
+    is_deeply \@output,
+      [
         'my scenario|changes|Found changes',
         'my scenario|mkdir|Making new snapshot directory',
         'my scenario|cp|Copying',
         'my scenario|rsync',
         'my scenario|rm|Removing latest link',
         'my scenario|ln|Symlinking latest'
-    ];
+      ];
 };
 
 sub _build_action {
     my (%params) = @_;
 
-    my $logger = $params{logger} || Test::MonkeyMock->new->mock(log => sub {});
+    my $logger = $params{logger} || Test::MonkeyMock->new->mock(log => sub { });
 
-    return App::rmachine::snapshot->new(scenario => 'my scenario', command_runner => App::rmachine::command_runner->new, logger => $logger, %params);
+    return App::rmachine::snapshot->new(
+        scenario       => 'my scenario',
+        command_runner => App::rmachine::command_runner->new,
+        logger         => $logger,
+        %params
+    );
 }
 
 done_testing;

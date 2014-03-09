@@ -3,76 +3,64 @@ use warnings;
 
 use Test::More;
 use Test::Fatal;
-use Test::MonkeyMock;
+
+use lib 't/lib';
 
 use App::rmachine::command::duplicity;
+use App::rmachine::command_runner;
+use TestUtils;
 
-subtest 'run command with correct arguments' => sub {
-    my $command_runner = Test::MonkeyMock->new;
-    my $command        = _build_command(
-        command_runner => $command_runner,
-        source         => '/foo/bar',
-        dest           => '/foo/baz'
+subtest 'detect when source changed' => sub {
+    my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
+    my $dest = TestUtils->prepare_tree();
+
+    my $command = _build_command(
+        source => $source,
+        dest   => "file:///$dest",
     );
 
-    my $cb = sub { };
-    $command->run(output_cb => $cb);
-
-    my ($got_cmd, %params) = $command_runner->mocked_call_args('run');
-
-    is $got_cmd, 'duplicity /foo/bar /foo/baz';
-    is $params{output_cb}, $cb;
+    ok $command->has_source_changed;
 };
 
-subtest 'run command with dry-run' => sub {
-    my $command_runner = Test::MonkeyMock->new;
-    my $command        = _build_command(
-        command_runner => $command_runner,
-        source         => '/foo/bar',
-        dest           => '/foo/baz',
-        'dry-run'      => 1
+subtest 'detect when source has not changed' => sub {
+    my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
+    my $dest = TestUtils->prepare_tree();
+
+    my $command = _build_command(
+        source => $source,
+        dest   => "file:///$dest",
     );
 
     $command->run;
 
-    my ($got_cmd) = $command_runner->mocked_call_args('run');
-
-    like $got_cmd, qr/ --dry-run /;
-};
-
-subtest 'throw when running without passphrase' => sub {
-    my $command_runner = Test::MonkeyMock->new;
-    my $command        = _build_command(
-        command_runner => $command_runner,
-        source         => '/foo/bar',
-        dest           => '/foo/baz',
-        env            => ''
+    $command = _build_command(
+        source => $source,
+        dest   => "file:///$dest",
     );
 
-    like exception { $command->run }, qr/duplicity requires env PASSPHRASE/;
+    ok !$command->has_source_changed;
 };
 
-subtest 'correctly build excludes' => sub {
-    my $command_runner = Test::MonkeyMock->new;
-    my $command        = _build_command(
-        command_runner => $command_runner,
-        source         => '/foo/bar',
-        dest           => '/foo/baz',
-        'exclude'      => 'foo,bar,baz'
+subtest 'encrypt files' => sub {
+    my $source = TestUtils->prepare_tree(foo => 'bar', bar => 'baz');
+    my $dest = TestUtils->prepare_tree();
+
+    my $command = _build_command(
+        source => $source,
+        dest   => "file:///$dest",
     );
 
     $command->run;
 
-    my ($got_cmd) = $command_runner->mocked_call_args('run');
-
-    like $got_cmd, qr/ --exclude foo --exclude bar --exclude baz /;
+    my $result = TestUtils->read_tree($dest);
+    ok grep { /manifest/ } keys %$result;
+    ok grep { /sigtar/ } keys %$result;
 };
 
 sub _build_command {
     my (%params) = @_;
 
-    my $command_runner = $params{command_runner} || Test::MonkeyMock->new;
-    $command_runner->mock(run => sub { });
+    my $command_runner = App::rmachine::command_runner->new;
 
     return App::rmachine::command::duplicity->new(
         env            => 'PASSPHRASE=bar',

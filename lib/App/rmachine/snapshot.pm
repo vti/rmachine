@@ -66,20 +66,15 @@ sub run {
         }
     }
 
-    my $changes       = '';
-    my $rsync_changes = App::rmachine::command::rsync->new(
+    my $command = App::rmachine::command::rsync->new(
+        env            => $self->{env},
         command_runner => $self->{command_runner},
         source         => join_dirs($self->{source}),
         dest           => join_dirs($latest_link),
-        exclude        => $self->{exclude},
-        'dry-run'      => 1,
-      )->run(
-        output_cb => sub {
-            $changes .= $_ if /rmachine:/;
-        }
-      );
+        exclude        => $self->{exclude}
+    );
 
-    if ($changes) {
+    if ($command->has_source_changed) {
         $self->log('changes', 'Found changes');
 
         $self->log('mkdir', 'Making new snapshot directory');
@@ -90,12 +85,15 @@ sub run {
           ->run("cp -alR $latest_link '$new_snapshot_dest'");
 
         $self->log('rsync');
-        App::rmachine::command::rsync->new(
+
+        my $command = App::rmachine::command::rsync->new(
+            env            => $self->{env},
             command_runner => $self->{command_runner},
-            source         => "$self->{source}/",
-            dest           => $new_snapshot_dest,
+            source         => join_dirs($self->{source}),
+            dest           => join_dirs($new_snapshot_dest),
             exclude        => $self->{exclude}
-        )->run;
+        );
+        $command->run;
 
         $self->log('rm', 'Removing latest link');
         $self->{command_runner}->run("rm $latest_link");
