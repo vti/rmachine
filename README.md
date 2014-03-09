@@ -97,6 +97,12 @@ After getting rmachine, an install command should be run:
 This sets up a cron job and creates `~/.rmachine` directory where the default
 config and log files are placed.
 
+### System dependencies
+
+- rsync
+- ssh (if you want remote backups)
+- duplicity (if you want encryption)
+
 ## Running
 
 rmachine is meant to be run by cron, but for the testing or checking your
