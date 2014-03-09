@@ -135,7 +135,6 @@ subtest 'correct log when creating new snapshot' => sub {
       [
         'my scenario|latest|Did not find latest symlink',
         'my scenario|mirror|Mirroring first snapshot',
-        'my scenario|run|rsync',
         'my scenario|ln|Symlinking latest',
       ];
 };
@@ -156,7 +155,7 @@ subtest 'correct log when no changes' => sub {
       _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
-    shift @output for 1 .. 4;
+    shift @output for 1 .. 3;
     is_deeply \@output, ['my scenario|changes|No changes',];
 };
 
@@ -180,7 +179,7 @@ subtest 'correct log when creating next snapshot' => sub {
       _build_action(source => $source, dest => $dest, logger => $logger);
     $action->run;
 
-    shift @output for 1 .. 4;
+    shift @output for 1 .. 3;
     is_deeply \@output,
       [
         'my scenario|changes|Found changes',

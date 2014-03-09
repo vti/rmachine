@@ -5,7 +5,6 @@ use warnings;
 
 use Cwd qw(realpath);
 use App::rmachine::command::rsync;
-use App::rmachine::mirror;
 use App::rmachine::util
   qw(is_dir_empty current_time join_dirs join_dirs_and_file);
 
@@ -50,14 +49,15 @@ sub run {
         }
         else {
             $self->log('mirror', 'Mirroring first snapshot');
-            my $mirror = $self->_build_mirror_action(
+
+            my $command = App::rmachine::command::rsync->new(
                 env            => $self->{env},
-                scenario       => $self->{scenario},
                 command_runner => $self->{command_runner},
                 source         => $self->{source},
-                dest           => $new_snapshot_dest
+                dest           => $new_snapshot_dest,
+                exclude        => $self->{exclude}
             );
-            $mirror->run;
+            $command->run;
 
             $self->log('ln', 'Symlinking latest');
             $self->{command_runner}
