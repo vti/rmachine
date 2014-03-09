@@ -6,7 +6,6 @@ use warnings;
 use base 'App::rmachine::command::base';
 
 require Carp;
-use App::rmachine::util qw(build_excludes);
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -25,9 +24,18 @@ sub _build_command {
     my $self = shift;
 
     my $dry_run = $self->{'dry-run'} ? ' --dry-run' : '';
-    my $excludes = build_excludes($self->{exclude});
+    my $excludes = $self->_build_excludes($self->{exclude});
 
     return 'rsync -rtDH --links --no-p --no-g --no-o --delete --delete-excluded -i --out-format="rmachine: %i %n%L" --chmod=Du+wx ' . $excludes . $dry_run . ' ' . $self->{source} . ' ' . $self->{dest};
+}
+
+sub _build_excludes {
+    my $self = shift;
+    my ($excludes) = @_;
+
+    return '' unless $excludes;
+
+    return join ' ', map { "--exclude=$_" } split /,/, $excludes;
 }
 
 1;

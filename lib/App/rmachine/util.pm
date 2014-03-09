@@ -5,18 +5,11 @@ use warnings;
 
 use base 'Exporter';
 
-our @EXPORT_OK = qw(build_excludes is_dir_empty current_time join_dirs join_dirs_and_file);
+our @EXPORT_OK =
+  qw(is_dir_empty current_time join_dirs join_dirs_and_file);
 
 use Time::Piece;
 use Time::HiRes qw(gettimeofday);
-
-sub build_excludes {
-	my $excludes = shift;
-
-	return '' unless $excludes;
-
-	return join ' ', map { "--exclude=$_" } split /,/, $excludes;
-}
 
 sub is_dir_empty {
     my $dirname = shift;

@@ -52,6 +52,22 @@ subtest 'throw when running without passphrase' => sub {
     like exception { $command->run }, qr/duplicity requires env PASSPHRASE/;
 };
 
+subtest 'correctly build excludes' => sub {
+    my $command_runner = Test::MonkeyMock->new;
+    my $command        = _build_command(
+        command_runner => $command_runner,
+        source         => '/foo/bar',
+        dest           => '/foo/baz',
+        'exclude'      => 'foo,bar,baz'
+    );
+
+    $command->run;
+
+    my ($got_cmd) = $command_runner->mocked_call_args('run');
+
+    like $got_cmd, qr/ --exclude foo --exclude bar --exclude baz /;
+};
+
 sub _build_command {
     my (%params) = @_;
 
