@@ -92,7 +92,7 @@ laptop or a remote server.
 
 After getting rmachine, an install command should be run:
 
-    $ rmachine install # TODO
+    $ rmachine setup # TODO
 
 This sets up a cron job and creates `~/.rmachine` directory where the default
 config and log files are placed.
@@ -108,16 +108,25 @@ config and log files are placed.
 rmachine is meant to be run by cron, but for the testing or checking your
 configuration it can be run just as a normal Perl script.
 
-    $ rmachine --test
+    $ rmachine backup --test
     2014-03-05T23:34:01.7586+0200 [scenario:snapshot] [start] 
     2014-03-05T23:34:01.8023+0200 [scenario:snapshot] [changes] No changes
     2014-03-05T23:34:01.8025+0200 [scenario:snapshot] [end] Success
     2014-03-05T23:34:01.8027+0200 [rmachine] [end] Finishing
 
-### Command-line options
+### Commands
 
-    --help    Print help on command-line options
-    --version Print version an exit
+    rmachine <command> [options]
+    rmachine --version
+
+Getting help for the command:
+
+    rmachine help <command>
+
+Commands:
+
+- backup
+
     --test    Run in test or dry-run mode, when commands are not run
     --force   Run backups immediately, not check if the period is matched
     --quiet   Suppress the output (the important information is
