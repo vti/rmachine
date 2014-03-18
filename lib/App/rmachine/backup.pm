@@ -13,7 +13,7 @@ use App::rmachine::command_runner;
 
 sub new {
     my $class = shift;
-    my ($argv) = @_;
+    my (%opts) = @_;
 
     my $self = {};
     bless $self, $class;
@@ -21,13 +21,11 @@ sub new {
     open my $lock, '<', __FILE__ or die "Can't lock myself\n";
     flock $lock, LOCK_EX | LOCK_NB or do { warn "Already running\n"; exit 255 };
 
-    my %params = $self->_parse_argv($argv);
-
-    $self->{config_file} = $params{config_file} || $self->_locate_config_file;
-    $self->{log_file}    = $params{log_file}    || $self->_locate_log_file;
-    $self->{quiet}       = $params{quiet};
-    $self->{test}        = $params{test};
-    $self->{force}       = $params{force};
+    $self->{config_file} = $opts{'--config'} || $self->_locate_config_file;
+    $self->{log_file}    = $opts{'--log'}    || $self->_locate_log_file;
+    $self->{quiet}       = $opts{'--quiet'};
+    $self->{test}        = $opts{'--test'};
+    $self->{force}       = $opts{'--force'};
 
     $self->{logger} = App::rmachine::logger->new(
         log_file => $self->{log_file},
@@ -35,13 +33,6 @@ sub new {
     );
 
     return $self;
-}
-
-sub help {
-    my $self = shift;
-
-    return <<"EOH";
-EOH
 }
 
 sub run {

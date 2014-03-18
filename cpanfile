@@ -10,6 +10,7 @@ requires 'Config::Tiny';
 requires 'Error::Tiny';
 requires 'File::ReadBackwards';
 requires 'Algorithm::Cron';
+requires 'Docopt';
 
 requires 'Test::Fatal';
 requires 'Test::MonkeyMock';

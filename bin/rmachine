@@ -3,55 +3,32 @@
 use strict;
 use warnings;
 
-use Getopt::Long;
+use Docopt;
 use App::rmachine;
 use App::rmachine::backup;
 
-my @command_argv;
-my @commands = qw(help backup);
-my $command;
-for (my $i = 0; $i < @ARGV; $i++) {
-    if (grep { $ARGV[$i] eq $_ } @commands) {
-        $command      = $ARGV[$i];
-        @command_argv = @ARGV[$i + 1 .. $#ARGV];
-        splice @ARGV, $i + 1;
-        last;
-    }
-}
+my $opts = docopt();
+use Data::Dumper; warn Dumper($opts);
 
-if (!$command && !@ARGV) {
-    die <<"EOH";
-Usage: rmachine [--version]
-       rmachine <command> [arguments]
-
-Available commands:
-
-    @commands
-
-For help run
-
-    rmachine help <command>
-
-EOH
-}
-
-my $version = '';
-GetOptions('version' => \$version)
-  or die("Error in command line arguments\n");
-
-if ($version) {
+if ($opts->{'--version'}) {
     print 'rmachine: ' . $App::rmachine::VERSION, "\n";
     exit 0;
 }
-
-if ($command eq 'help') {
-    my ($help_for_command) = @command_argv;
-    die "Usage: rmachine help <command>" unless $help_for_command;
-
-    my $command_class = 'App::rmachine::' . $help_for_command;
-    print $command_class->help;
+elsif ($opts->{backup}) {
+    App::rmachine::backup->new(%$opts)->run;
 }
-else {
-    my $command_class = 'App::rmachine::' . $command;
-    $command_class->new(\@command_argv)->run;
-}
+
+__END__
+
+=head1 SYNOPSIS
+
+  rmachine backup [--config=rmachine.conf]
+                  [--log=rmachine.log]
+                  [--force]
+                  [--test]
+                  [--quiet]
+  rmachine -h | --help
+  rmachine --version
+
+  -h --help     Show this screen.
+  --version     Show version.
