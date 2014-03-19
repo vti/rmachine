@@ -13,10 +13,7 @@ sub new {
     my $self = {};
     bless $self, $class;
 
-    $self->{cmd} = 'rsync';
-
-    $self->{encryption} = $params{encryption};
-    $self->{password}   = $params{password};
+    $self->{backend} = $params{backend} || 'rsync';
 
     $self->{scenario}       = $params{scenario};
     $self->{command_runner} = $params{command_runner};
@@ -27,28 +24,17 @@ sub new {
     $self->{dest}    = $params{dest};
     $self->{exclude} = $params{exclude};
 
-    if (my $encryption = $self->{encryption}) {
-        if ($encryption eq 'gpg') {
-            $self->{cmd} = 'duplicity';
-
-            die "Password is required when using gpg encryption"
-              unless $self->{password};
-        }
-        else {
-            die "Ecnryption '$encryption' is not supported";
-        }
-    }
-
     return $self;
 }
 
 sub run {
     my $self = shift;
 
-    $self->log('run', $self->{cmd});
+    $self->log('run', $self->{backend});
 
     return $self->_build_command(
-        $self->{cmd},
+        $self->{backend},
+        env            => $self->{env},
         source         => $self->{source},
         dest           => $self->{dest},
         exclude        => $self->{exclude},
@@ -65,10 +51,6 @@ sub log {
 sub _build_command {
     my $self = shift;
     my ($command, %params) = @_;
-
-    if ($command eq 'duplicity') {
-        $params{env} = 'PASSPHRASE=' . $self->{password};
-    }
 
     my $command_class = 'App::rmachine::command::' . $command;
     return $command_class->new(%params);
