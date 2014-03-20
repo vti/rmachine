@@ -32,14 +32,26 @@ sub run {
 
     $self->log('run', $self->{backend});
 
-    return $self->_build_command(
+    my $command = $self->_build_command(
         $self->{backend},
+        type           => 'mirror',
         env            => $self->{env},
         source         => $self->{source},
         dest           => $self->{dest},
         exclude        => $self->{exclude},
         command_runner => $self->{command_runner},
-    )->run;
+    );
+
+    if ($command->has_source_changed) {
+        $self->log('changes', 'Changes detected');
+
+        $command->run;
+    }
+    else {
+        $self->log('changes', 'No changes detected. Skip');
+    }
+
+    return $self;
 }
 
 sub log {

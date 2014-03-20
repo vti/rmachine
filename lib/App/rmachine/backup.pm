@@ -64,29 +64,6 @@ sub run {
         'Finishing: ' . ($any_errors ? 'Some errors' : 'All successful'));
 }
 
-sub _parse_argv {
-    my $self = shift;
-    my ($argv) = @_;
-
-    my %params;
-
-    $params{test}        = 0;
-    $params{force}       = 0;
-    $params{quiet}       = 0;
-    $params{config_file} = '';
-    $params{log_file}    = '';
-    GetOptionsFromArray(
-        $argv,
-        'test'     => \$params{test},
-        'force'    => \$params{force},
-        'quiet'    => \$params{quiet},
-        'config=s' => \$params{config_file},
-        'log=s'    => \$params{log_file},
-    ) or die("Error in command line arguments\n");
-
-    return %params;
-}
-
 sub _read_config {
     my $self = shift;
 

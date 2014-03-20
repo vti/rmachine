@@ -50,7 +50,7 @@ subtest 'ignore exluded' => sub {
 };
 
 subtest 'log actions' => sub {
-    my $source = TestUtils->prepare_tree();
+    my $source = TestUtils->prepare_tree(foo => 'bar');
     my $dest = TestUtils->prepare_tree();
 
     my $output = '';

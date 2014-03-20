@@ -14,7 +14,7 @@ sub new {
     $self->{source} = $params{source} || Carp::croak('source required');
     $self->{dest}   = $params{dest}   || Carp::croak('dest required');
 
-    $self->{full} = $params{full};
+    $self->{type} = $params{type};
     $self->{exclude} = $params{exclude};
 
     return $self;
@@ -53,9 +53,9 @@ sub run {
 sub _build_command {
     my $self = shift;
 
-    my $dry_run = $self->{'dry-run'} ? ' --dry-run' : '';
+    my $dry_run  = $self->{'dry-run'} ? ' --dry-run' : '';
     my $excludes = $self->_build_excludes($self->{exclude});
-    my $full = $self->{fool} ? ' full' : '';
+    my $full     = $self->{type} && $self->{type} eq 'mirror' ? ' full' : '';
 
     return
         'duplicity'
