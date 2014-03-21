@@ -150,9 +150,9 @@ sub _find_last_run {
     my ($scenario) = @_;
 
     my $last_run = $self->{logger}->grep_last(
-        scenario => $scenario,
-        action   => 'end',
-        message  => qr/Success/
+        source  => $scenario,
+        action  => 'end',
+        message => qr/Success/
     );
 
     if ($last_run) {
