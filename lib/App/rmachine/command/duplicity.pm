@@ -15,6 +15,7 @@ sub new {
     $self->{dest}   = $params{dest}   || Carp::croak('dest required');
 
     $self->{type} = $params{type};
+    $self->{'full-if-older-than'} = $params{'full-if-older-than'};
     $self->{exclude} = $params{exclude};
 
     return $self;
@@ -53,13 +54,19 @@ sub run {
 sub _build_command {
     my $self = shift;
 
+    my $full     = $self->{type} && $self->{type} eq 'mirror' ? ' full' : '';
+
+    my $args = '';
     my $dry_run  = $self->{'dry-run'} ? ' --dry-run' : '';
     my $excludes = $self->_build_excludes($self->{exclude});
-    my $full     = $self->{type} && $self->{type} eq 'mirror' ? ' full' : '';
+    if (my $arg = $self->{'full-if-older-than'}) {
+        $args .= ' --full-if-older-than=' . $arg;
+    }
 
     return
         'duplicity'
       . $full
+      . $args
       . $excludes
       . $dry_run . ' '
       . $self->{source} . ' '

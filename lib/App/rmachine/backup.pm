@@ -10,6 +10,9 @@ use Config::Tiny;
 use App::rmachine::logger;
 use App::rmachine::action_runner;
 use App::rmachine::command_runner;
+use App::rmachine::mirror;
+use App::rmachine::snapshot;
+use App::rmachine::incremental;
 
 sub new {
     my $class = shift;
@@ -74,7 +77,7 @@ sub _read_config {
 
     my @scenarios = sort grep { /^scenario:/ } keys %$config;
 
-    my @known_types = qw/mirror snapshot/;
+    my @known_types = qw/mirror snapshot incremental/;
     foreach my $scenario (@scenarios) {
         my %params = (%{$config->{_} || {}}, %{$config->{$scenario} || {}});
 
