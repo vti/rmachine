@@ -90,6 +90,26 @@ subtest 'run when correct period' => sub {
     like $logger->tail(3), qr/Running according to schedule/;
 };
 
+subtest 'run when correct period and ignore other scenarios' => sub {
+    my $action = _mock_action();
+
+    set_absolute_time(
+        localtime->strptime('2014-01-01 19:55:01', '%Y-%m-%d %T')->epoch);
+    my $logger = _prepare_logger(scenario => 'another scenario');
+    restore_time();
+
+    my $runner = _build_runner(
+        logger => $logger,
+        action => $action,
+        start_time =>
+          localtime->strptime('2014-01-01 19:55:01', '%Y-%m-%d %T')->epoch
+    );
+    $runner->run('scenario', period => '*/5 * * * *');
+
+    ok $action->mocked_called('run');
+    like $logger->tail(3), qr/No last run found/;
+};
+
 subtest 'run immediately when force' => sub {
     my $action = _mock_action();
     my $logger = _prepare_logger();
@@ -224,7 +244,7 @@ sub _prepare_logger {
     my $logger = App::rmachine::logger->new(log_file => $file);
 
     unless ($params{new}) {
-        $logger->log('scenario', 'end', 'Success');
+        $logger->log($params{scenario} || 'scenario', 'end', 'Success');
     }
 
     return $logger;
