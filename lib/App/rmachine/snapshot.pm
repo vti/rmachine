@@ -80,9 +80,11 @@ sub run {
         $self->log('mkdir', 'Making new snapshot directory');
         $self->{command_runner}->run("mkdir '$new_snapshot_dest'");
 
+        my $latest_link_realpath = realpath($latest_link);
+
         $self->log('cp', 'Copying');
         $self->{command_runner}
-          ->run("cp -alR $latest_link '$new_snapshot_dest'");
+          ->run("cp -alR $latest_link_realpath/. '$new_snapshot_dest'");
 
         $self->log('rsync');
 

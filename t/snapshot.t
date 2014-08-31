@@ -71,6 +71,11 @@ subtest 'create new snapshot' => sub {
 
     like $date2, qr/\d+-\d+-\d+T\d+:\d+:\d/;
     is_deeply $result->{$date2}, {foo => 1, new_file => 1};
+
+    my ($previous_inode) = `ls -li $dest/$date1/foo` =~ m/^(\d+)/;
+    my ($latest_inode) = `ls -li $dest/latest/foo` =~ m/^(\d+)/;
+
+    is $previous_inode, $latest_inode;
 };
 
 subtest 'create new snapshot when source is empty' => sub {
